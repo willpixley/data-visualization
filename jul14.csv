@@ -1,0 +1,9 @@
+,trade_id,trade_date,action,amount,flagged,price_at_trade,current_price,member_name,member_party,member_state,member_chamber,stock_ticker,stock_name,sector_code,sector_name,committee_names
+1047,20003790760,2025-07-14,b,8000,False,180.62,281.19,Val T.  Hoyle,Democrat,OR,House of Representatives,GOOGL,Alphabet Inc. Class A Common Stock,45,Technology,"Natural Resources, Transportation and Infrastructure"
+1090,20003790804,2025-07-14,b,8000,False,0.0,0.0,Val T.  Hoyle,Democrat,OR,House of Representatives,BF-A,Brown Forman Corporation,0,Other,"Natural Resources, Transportation and Infrastructure"
+1113,20003790838,2025-07-14,b,8000,False,139.74,139.57,Val T.  Hoyle,Democrat,OR,House of Representatives,EMR,Emerson Electric Company Common Stock,45,Technology,"Natural Resources, Transportation and Infrastructure"
+1136,20003790782,2025-07-14,b,8000,False,108.37,157.69,Val T.  Hoyle,Democrat,OR,House of Representatives,ANET,Arista Networks Inc. Common Stock,50,Telecommunications,"Natural Resources, Transportation and Infrastructure"
+2836,20003788398,2025-07-14,b,8000,False,225.73,244.22,Cleo  Fields,Democrat,LA,House of Representatives,AMZN,Amazon.com Inc. Common Stock,25,Consumer Discretionary,Financial Services
+2869,20003788436,2025-07-14,b,175000,False,165.15,202.49,Cleo  Fields,Democrat,LA,House of Representatives,NVDA,NVIDIA Corporation Common Stock,45,Technology,Financial Services
+2886,20003788369,2025-07-14,b,32500,False,30.66,35.37,Tim  Moore,Republican,NC,House of Representatives,CNC,Centene Corporation Common Stock,35,Healthcare,"Budget, Financial Services"
+3367,20003788549,2025-07-14,b,375000,False,73.7,82.13,Ro  Khanna,Democrat,CA,House of Representatives,TD,Toronto Dominion Bank (The) Common Stock,40,Financials,"Armed Services, Oversight & Government Reform, Select Committee on the CCP"
