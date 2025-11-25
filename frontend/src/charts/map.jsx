@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 import { Legend } from '../utils/Legend.js';
 import './map.css';
+import Popout from '../Popout.jsx';
 
 const steps = [
 	{
@@ -97,7 +98,7 @@ const stateNames = {
 	WY: 'Wyoming',
 };
 
-export default function MapStory() {
+export default function MapStory({ data }) {
 	const chartRef = useRef(null);
 	const [activeStepIndex, setActiveStepIndex] = useState(0);
 	const statePathMap = useRef(new Map());
@@ -105,6 +106,7 @@ export default function MapStory() {
 	const [selectedState, setSelectedState] = useState(null);
 	const [members, setMembers] = useState([]);
 	const [allMemberData, setAllMemberData] = useState([]);
+	const [selectedMember, setSelectedMember] = useState(null);
 
 	const currentStep = steps[activeStepIndex];
 	useEffect(() => {
@@ -157,13 +159,23 @@ export default function MapStory() {
 					state: row.member_state,
 					imageUrl: row.photo_url,
 					volume: row.total_trade_volume,
+					trades: [],
 				});
 			}
+
+			// pull from main data source
+			const memberTrades = data.filter(
+				(trade) => trade.member_bio_guide_id === row.member_bio_guide_id
+			);
+
+			memberMap.get(row.member_bio_guide_id).trades = memberTrades;
 		}
 
-		// Convert Map -> Array
-		setMembers(Array.from(memberMap.values()));
+		// Convert map to array
+		const membersWithTrades = Array.from(memberMap.values());
+		setMembers(membersWithTrades);
 	}, [selectedState, allMemberData]);
+	console.log(allMemberData);
 
 	// Draw chart only once
 	useEffect(() => {
@@ -264,43 +276,66 @@ export default function MapStory() {
 	console.log(members);
 
 	return (
-		<div className='w-full flex justify-evenly'>
-			<div ref={chartRef} className='' />
+		<>
+			{selectedMember && (
+				<Popout
+					member={selectedMember}
+					setSelectedMember={setSelectedMember}
+				/>
+			)}
+			<div
+				className={`w-full ${
+					selectedMember && 'blur-xl pointer-events-none'
+				}`}>
+				<h1 className='text-center text-3xl text-text font-bold my-3'>
+					Trade Volume by State
+				</h1>
+				<div className={`w-full flex justify-evenly `}>
+					<div ref={chartRef} className='' />
 
-			<div className='pr-5 flex flex-col  gap-3 items-center border-2 p-5 m-5 bg-tile rounded-xl shadow-lg text-text w-[20%]'>
-				{selectedState ? (
-					<>
-						<h3 className='font-bold text-3xl'>
-							{selectedState.name}
-						</h3>
-						<p className=''>
-							Total Trade Volume: $
-							{selectedState.volume.toLocaleString()}
-						</p>
-						{members.map((member) => (
-							<div
-								className='flex my-1 justify-between w-full items-center'
-								key={member.id}>
-								<img
-									className='w-12 h-12 object-cover rounded-full'
-									src={member.imageUrl}
-								/>
-								<p className='text-xs text-right'>
-									{member.name} | $
-									{Number(member.volume).toLocaleString()}
+					<div className='pr-5 flex flex-col  gap-3 items-center border-2 p-5 m-5 bg-tile rounded-xl shadow-lg text-text w-[20%]'>
+						{selectedState ? (
+							<>
+								<h3 className='font-bold text-3xl'>
+									{selectedState.name}
+								</h3>
+								<p className=''>
+									Total Trade Volume: $
+									{selectedState.volume.toLocaleString()}
 								</p>
-							</div>
-						))}
-						<button
-							className='absolute bottom-30  px-3 py-1  text-center bg-red-400 rounded-full '
-							onClick={() => setSelectedState(null)}>
-							Close
-						</button>
-					</>
-				) : (
-					<p className='font-bold'>Click a state to view details</p>
-				)}
+								{members.map((member) => (
+									<div
+										className='flex  px-3 py-1 cursor-pointer justify-between w-full items-center rounded-3xl hover:bg-gray-700'
+										key={member.id}
+										onClick={() => {
+											setSelectedMember(member);
+										}}>
+										<img
+											className='w-12 h-12 object-cover rounded-full'
+											src={member.imageUrl}
+										/>
+										<p className='text-xs text-right'>
+											{member.name} | $
+											{Number(
+												member.volume
+											).toLocaleString()}
+										</p>
+									</div>
+								))}
+								<button
+									className='cursor-pointer my-4  px-3 py-1 text-text hover:bg-red-800  text-center bg-red-600 rounded-full '
+									onClick={() => setSelectedState(null)}>
+									Close
+								</button>
+							</>
+						) : (
+							<p className='font-bold'>
+								Click a state to view details
+							</p>
+						)}
+					</div>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }

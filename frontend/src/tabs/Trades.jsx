@@ -26,25 +26,25 @@ export default function Trades({ data }) {
 						dealings of 535 representatives.
 					</p>
 				</div>
-				<div className='bg-tile rounded-3xl'>
-					<h1 className='text-center text-white font-bold pt-5'>
-						Stock Purhcases and Sales since Jan. 2023 (By date)
-					</h1>
-					<BuySellLineChart data={data} />
-				</div>
-			</div>
-			<div className='flex justify-evenly'>
-				<div className='bg-tile rounded-3xl'>
+				<div className=' rounded-3xl'>
 					<h1 className='text-center text-white font-bold pt-5'>
 						Most traded stocks (by volume)
 					</h1>
 					<StockWordCloud data={data} />
 				</div>
-				<div className='flex flex-col  items-center bg-tile rounded-3xl w-[33%] justify-center'>
+			</div>
+			<div className='flex justify-evenly'>
+				<div className='flex flex-col  items-center  rounded-3xl w-[33%] justify-center'>
 					<h1 className='text-center text-white font-bold pt-5'>
 						Stock Purhcases and Sales since Jan. 2023 (By volume)
 					</h1>
 					<ActionPieChart data={data} />
+				</div>
+				<div className='bg-tile rounded-3xl'>
+					<h1 className='text-center text-white font-bold pt-5'>
+						Stock Purhcases and Sales since Jan. 2023 (By date)
+					</h1>
+					<BuySellLineChart data={data} />
 				</div>
 			</div>
 		</div>

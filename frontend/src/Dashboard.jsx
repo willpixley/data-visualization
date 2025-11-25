@@ -5,13 +5,13 @@ import Who from './tabs/Who';
 import * as Papa from 'papaparse';
 
 export default function Dashboard() {
-	const [tab, setTab] = useState(2);
+	const [tab, setTab] = useState(0);
 	const [data, setData] = useState(null);
 	const tabs = [
-		{ title: 'Who', component: <Who /> }, // map, congressmen
+		{ title: 'Who', component: <Who data={data} /> }, // map, congressmen
 		{ title: 'What', component: <Trades data={data} /> }, // trade list and stock info
 
-		{ title: 'Why', component: <Performance /> }, // returns and performance
+		{ title: 'Why', component: <Performance data={data} /> }, // returns and performance
 	];
 	useEffect(() => {
 		async function fetchData() {

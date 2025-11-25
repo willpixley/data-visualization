@@ -11,7 +11,7 @@ export default function StockWordCloud({ data, width = 800, height = 400 }) {
 		const totals = d3.rollup(
 			data,
 			(v) => d3.sum(v, (d) => +d.amount),
-			(d) => d.stock_name
+			(d) => d.stock_ticker
 		);
 
 		const words = Array.from(totals, ([text, value]) => ({ text, value }));
@@ -26,7 +26,11 @@ export default function StockWordCloud({ data, width = 800, height = 400 }) {
 			.size([width, height])
 			.words(words)
 			.padding(5)
-			.rotate(() => (Math.random() > 0.5 ? 0 : 90))
+			.rotate(
+				() =>
+					(Math.random() < 0.5 ? 1 : -1) *
+					Math.floor(Math.random() * 65)
+			)
 			.font('Impact')
 			.fontSize((d) => fontScale(d.value))
 			.on('end', draw);
