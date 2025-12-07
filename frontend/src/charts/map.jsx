@@ -107,6 +107,7 @@ export default function MapStory({ data }) {
 	const [members, setMembers] = useState([]);
 	const [allMemberData, setAllMemberData] = useState([]);
 	const [selectedMember, setSelectedMember] = useState(null);
+	const tooltipRef = useRef(null);
 
 	const currentStep = steps[activeStepIndex];
 	useEffect(() => {
@@ -192,7 +193,10 @@ export default function MapStory({ data }) {
 				])
 			);
 			const maxVol = Math.max(...trades.map((d) => d.volume));
-			const color = d3.scaleQuantile([0, maxVol], d3.schemeGreens[9]);
+			const color = d3
+				.scaleLinear()
+				.domain([0, 1_000_000, 5_000_000, 23_000_000])
+				.range(['#f7fcf5', '#c7e9c0', '#74c476', '#00441b']);
 			const path = d3.geoPath();
 			const valuemap = new Map(
 				trades.map((d) => [namemap.get(d.name), d.volume])
@@ -213,6 +217,7 @@ export default function MapStory({ data }) {
 				.append(() =>
 					Legend(color, { title: 'Trade Volume', width: 260, maxVol })
 				);
+			const tooltip = d3.select(tooltipRef.current);
 
 			const states = topojson.feature(us, us.objects.states);
 
@@ -220,14 +225,6 @@ export default function MapStory({ data }) {
 				.selectAll('path')
 				.data(states.features)
 				.join('path')
-				.on('click', (event, d) => {
-					const id = String(d.id).padStart(2, '0');
-					setSelectedState({
-						id,
-						name: d.properties.name,
-						volume: valuemap.get(d.id) ?? 0,
-					});
-				})
 				.attr('class', 'state')
 				.attr('fill', (d) => color(valuemap.get(d.id)))
 				.attr('d', path)
@@ -235,7 +232,32 @@ export default function MapStory({ data }) {
 					const key = String(d.id).padStart(2, '0');
 					statePathMap.current.set(key, d3.select(this));
 				})
-				.append('title');
+				.on('mouseover', (event, d) => {
+					const volume = valuemap.get(d.id) ?? 0;
+					tooltip
+						.style('opacity', 1)
+						.html(
+							`<strong>${
+								d.properties.name
+							}</strong><br/>Volume: $${volume.toLocaleString()}`
+						);
+				})
+				.on('mousemove', (event) => {
+					tooltip
+						.style('left', `${event.pageX + 10}px`)
+						.style('top', `${event.pageY + 10}px`);
+				})
+				.on('mouseout', () => {
+					tooltip.style('opacity', 0);
+				})
+				.on('click', (event, d) => {
+					const id = String(d.id).padStart(2, '0');
+					setSelectedState({
+						id,
+						name: d.properties.name,
+						volume: valuemap.get(d.id) ?? 0,
+					});
+				});
 
 			svg.append('path')
 				.datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
@@ -292,6 +314,9 @@ export default function MapStory({ data }) {
 				</h1>
 				<div className={`w-full flex justify-evenly `}>
 					<div ref={chartRef} className='' />
+					<div
+						ref={tooltipRef}
+						className='absolute pointer-events-none bg-gray-800 text-white text-sm p-2 rounded opacity-0 transition-opacity z-50'></div>
 
 					<div className='pr-5 flex flex-col  gap-3 items-center border-2 p-5 m-5 bg-tile rounded-xl shadow-lg text-text w-[20%]'>
 						{selectedState ? (
@@ -303,25 +328,28 @@ export default function MapStory({ data }) {
 									Total Trade Volume: $
 									{selectedState.volume.toLocaleString()}
 								</p>
-								{members.map((member) => (
-									<div
-										className='flex  px-3 py-1 cursor-pointer justify-between w-full items-center rounded-3xl hover:bg-gray-700'
-										key={member.id}
-										onClick={() => {
-											setSelectedMember(member);
-										}}>
-										<img
-											className='w-12 h-12 object-cover rounded-full'
-											src={member.imageUrl}
-										/>
-										<p className='text-xs text-right'>
-											{member.name} | $
-											{Number(
-												member.volume
-											).toLocaleString()}
-										</p>
-									</div>
-								))}
+								{members
+									.slice()
+									.sort((a, b) => b.volume - a.volume)
+									.map((member) => (
+										<div
+											className='flex  px-3 py-1 cursor-pointer justify-between w-full items-center rounded-3xl hover:bg-gray-700'
+											key={member.id}
+											onClick={() => {
+												setSelectedMember(member);
+											}}>
+											<img
+												className='w-12 h-12 object-cover rounded-full'
+												src={member.imageUrl}
+											/>
+											<p className='text-xs text-right'>
+												{member.name} | $
+												{Number(
+													member.volume
+												).toLocaleString()}
+											</p>
+										</div>
+									))}
 								<button
 									className='cursor-pointer my-4  px-3 py-1 text-text hover:bg-red-800  text-center bg-red-600 rounded-full '
 									onClick={() => setSelectedState(null)}>
