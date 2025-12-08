@@ -20,7 +20,6 @@ export default function RibbonPlot() {
 				[1, 'green'],
 			];
 
-			// create a ribbon for each stock
 			const data = stocks.map((stock, idx) => {
 				const z = parsed.map((row) => parseFloat(row[stock]));
 
@@ -53,14 +52,19 @@ export default function RibbonPlot() {
 						center: { x: -0.15, y: -0.1, z: -0.2 },
 					},
 					xaxis: {
-						title: { text: 'Date' },
+						title: { text: 'Date', font: { color: '#e0e0e0' } },
+						tickfont: { color: '#e0e0e0' },
 					},
 					yaxis: {
-						title: { text: 'Stock' },
+						title: { text: 'Stock', font: { color: '#e0e0e0' } },
 						tickvals: stocks.map((_, i) => i),
 						ticktext: stocks,
+						tickfont: { color: '#e0e0e0' },
 					},
-					zaxis: { title: { text: 'Price' } },
+					zaxis: {
+						title: { text: 'Price', font: { color: '#e0e0e0' } },
+						tickfont: { color: '#e0e0e0' },
+					},
 				},
 				paper_bgcolor: '#1f1f1f',
 				plot_bgcolor: '#1f1f1f',

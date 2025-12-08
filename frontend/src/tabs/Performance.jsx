@@ -60,6 +60,15 @@ export default function Performance({ data }) {
 			<div className='w=full flex justify-between'>
 				<ThreeD />
 				<div className='text-text'>
+					<div className='bg-tile flex flex-col p-4 rounded-3xl  mb-8'>
+						<h2 className='font-semibold'>Axes Guide</h2>
+						<p>
+							X axis: Date (Oldest on left to most recent on
+							right)
+						</p>
+						<p>Y axis: Price per share (USD)</p>
+						<p>Z axis: Stock ticker</p>
+					</div>
 					<h1 className='font-bold text-xl mb-3'>
 						About the Plot &#8212; 4 month performance
 					</h1>
@@ -79,6 +88,7 @@ export default function Performance({ data }) {
 						trades, we can see nearly all hit a peak within a few
 						months of being bought by a member of congress.
 					</p>
+					<br />
 				</div>
 			</div>
 			<div id='line-chart' className='w-full bg-tile  rounded-3xl p-4'>
