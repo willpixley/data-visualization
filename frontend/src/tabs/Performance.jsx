@@ -2,10 +2,14 @@ import PerformanceLineChart from '../charts/PerformanceLineChart';
 import ThreeD from '../charts/ThreeD';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { formatDate } from '../utils/lib';
 
 export default function Performance({ data }) {
 	const [stockHistory, setStockHistory] = useState(null);
 	const [selectedTrade, setSelectedTrade] = useState(data[0]);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [filteredTrades, setFilteredTrades] = useState([]);
+
 	console.log(selectedTrade);
 
 	useEffect(() => {
@@ -21,7 +25,9 @@ export default function Performance({ data }) {
 		}
 	}, [selectedTrade]);
 
-	function changeTrade() {
+	function selectTradeByTicker() {
+		if (!searchTerm) return;
+
 		const sixMonthsAgo = new Date();
 		sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -31,14 +37,21 @@ export default function Performance({ data }) {
 			return d >= sixMonthsAgo;
 		});
 
-		if (recentTrades.length === 0) return; // nothing to pick from
+		// Get all trades matching the entered ticker
+		const matches = recentTrades.filter(
+			(t) => t.stock_ticker.toUpperCase() === searchTerm
+		);
 
-		// Pick a random trade
-		const randomTrade =
-			recentTrades[Math.floor(Math.random() * recentTrades.length)];
+		if (matches.length === 0) {
+			alert('No trades found for that ticker in the last 6 months');
+			setFilteredTrades([]);
+			return;
+		}
 
-		setSelectedTrade(randomTrade);
+		setFilteredTrades(matches);
+		setSelectedTrade(matches[0]); // default to first match
 	}
+
 	return (
 		<div>
 			<h1 className='text-center w-full text-text text-3xl font-bold my-3'>
@@ -68,48 +81,116 @@ export default function Performance({ data }) {
 					</p>
 				</div>
 			</div>
+			<div id='line-chart' className='w-full bg-tile  rounded-3xl p-4'>
+				<h1 className='text-center w-full text-3xl mt-3 mb-6 font-bold text-text'>
+					Individual Trade Performance
+				</h1>
+				<div id='choose-trade' className='flex justify-evenly w-full'>
+					<div className='flex flex-col items-center bg-background w-[45%] rounded-3xl p-4 pb-8 text-text'>
+						<p className='font-bold text-2xl my-3'>
+							Search by stock ticker
+						</p>
+						<div className='flex items-center justify-evenly w-full mt-2'>
+							<input
+								type='text'
+								placeholder='Enter stock ticker (last 6 months)'
+								value={searchTerm}
+								onChange={(e) =>
+									setSearchTerm(e.target.value.toUpperCase())
+								}
+								className='px-3 py-2 rounded-2xl border border-gray-400 w-[50%] text-text'
+							/>
+							<button
+								onClick={selectTradeByTicker}
+								className='font-bold px-6 py-2 rounded-2xl bg-green-700 hover:bg-green-900 cursor-pointer'>
+								Search
+							</button>
+						</div>
 
-			<div className='flex justify-between gap-4 w-full p-4'>
-				<div className='flex flex-col items-center w-[40%] text-text bg-tile rounded-3xl p-4 '>
-					<h1 className='font-bold text-2xl my-3'>
-						Individual Trades
-					</h1>
-					<p>
-						{selectedTrade.member_name} |{' '}
-						{selectedTrade.member_party[0]}
-					</p>
-					<p
-						className={`rounded-2xl px-3 py-1 ${
-							selectedTrade.action == 'b'
-								? 'bg-green-800'
-								: 'bg-red-700'
-						}`}>
-						{selectedTrade.action == 'b' ? 'Buy' : 'Sell'}
-					</p>
-					<p>~${Number(selectedTrade.amount).toLocaleString()}</p>
-					<p>
-						{selectedTrade.stock_name} ({selectedTrade.stock_ticker}
-						)
-					</p>
-					<p>{selectedTrade.trade_date}</p>
-					<p>{selectedTrade.committee_names}</p>
-					<button
-						onClick={changeTrade}
-						className='mt-12 font-bold px-6 py-2 rounded-2xl  bg-green-700 hover:bg-green-900 cursor-pointer'>
-						Select a random trade
-					</button>
+						{filteredTrades.length > 1 && (
+							<div className='mt-5 flex justify-evenly items-center w-full'>
+								<p className='font-semibold '>
+									Select a specific trade:
+								</p>
+								<select
+									value={selectedTrade?.trade_date}
+									onChange={(e) => {
+										const trade = filteredTrades.find(
+											(t) =>
+												t.trade_date === e.target.value
+										);
+										setSelectedTrade(trade);
+									}}
+									className='px-3 py-2 rounded-2xl border border-gray-400 w-64'>
+									{filteredTrades.map((trade) => (
+										<option
+											key={
+												trade.trade_date +
+												trade.member_name
+											}
+											value={trade.trade_date}>
+											{trade.member_name} —{' '}
+											{formatDate(trade.trade_date)} — $
+											{Number(
+												trade.amount
+											).toLocaleString()}
+										</option>
+									))}
+								</select>
+							</div>
+						)}
+					</div>
+					<div className='flex flex-col items-left w-[45%]  text-text bg-background rounded-3xl pb-8 pt-3 px-8'>
+						<h1 className='font-bold text-center w-full text-2xl my-3'>
+							Trade Details{' '}
+							{selectedTrade.flagged == 'True' && '🚩'}
+						</h1>
+						<div className='flex justify-between mb-3 items-center'>
+							<p>
+								{selectedTrade.member_name} |{' '}
+								{selectedTrade.member_party[0]}
+							</p>
+							<p className='w-[60%] truncate'>
+								{selectedTrade.committee_names}
+							</p>
+						</div>
+						<div className='flex justify-between mb-3 items-center'>
+							<p
+								className={`rounded-2xl px-3 py-1 ${
+									selectedTrade.action == 'b'
+										? 'bg-green-800'
+										: 'bg-red-700'
+								}`}>
+								{selectedTrade.action == 'b' ? 'Buy' : 'Sell'}
+							</p>
+							<p>
+								~$
+								{Number(selectedTrade.amount).toLocaleString()}
+							</p>
+						</div>
+						<div className='flex justify-between items-center'>
+							<p>
+								{selectedTrade.stock_name} (
+								{selectedTrade.stock_ticker})
+							</p>
+							<p>{formatDate(selectedTrade.trade_date)}</p>
+						</div>
+					</div>
 				</div>
-				<div className='w-full flex flex-col items-center'>
-					<h1 className='text-text font-semi text-xl'>
-						{selectedTrade.stock_ticker} 6 month performance
-					</h1>
-					{stockHistory && selectedTrade && (
-						<PerformanceLineChart
-							dates={stockHistory.dates}
-							prices={stockHistory.prices}
-							tradeDate={selectedTrade.trade_date}
-						/>
-					)}
+				<div className='flex justify-between gap-4 w-full p-4'>
+					<div className='w-full flex flex-col items-center'>
+						<h1 className='text-text font-semi text-xl mb-3'>
+							{selectedTrade.stock_ticker} &mdash; 6 month
+							performance
+						</h1>
+						{stockHistory && selectedTrade && (
+							<PerformanceLineChart
+								dates={stockHistory.dates}
+								prices={stockHistory.prices}
+								tradeDate={selectedTrade.trade_date}
+							/>
+						)}
+					</div>
 				</div>
 			</div>
 		</div>

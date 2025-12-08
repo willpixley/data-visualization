@@ -1,48 +1,103 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import * as d3 from 'd3';
 
 export default function ActionPieChart({ data }) {
-	const counts = useMemo(() => {
-		return d3.rollups(
+	const [hovered, setHovered] = useState(null);
+
+	// ─── Top 6 sectors + Other ─────────────────────────
+	const sectorCounts = useMemo(() => {
+		const totals = d3.rollups(
 			data,
 			(v) => d3.sum(v, (d) => +d.amount),
-			(d) => (d.action === 'b' ? 'Buy' : 'Sell')
+			(d) => d.sector_name
 		);
+
+		totals.sort((a, b) => b[1] - a[1]);
+
+		const topSix = totals.slice(0, 6);
+		const otherTotal = totals.slice(6).reduce((sum, d) => sum + d[1], 0);
+
+		if (otherTotal > 0) topSix.push(['Other', otherTotal]);
+
+		return topSix;
 	}, [data]);
 
 	const pie = d3.pie().value((d) => d[1]);
-	const arcs = pie(counts);
+	const arcs = pie(sectorCounts);
 
 	const arcGen = d3.arc().innerRadius(0).outerRadius(120);
 
 	const colors = d3
 		.scaleOrdinal()
-		.domain(['Buy', 'Sell'])
-		.range(['#0fab0c', '#ef4444']); // green + red
+		.domain(sectorCounts.map((d) => d[0]))
+		.range(d3.schemeTableau10);
 
 	return (
-		<svg width={300} height={300}>
-			<g transform='translate(150,150)'>
-				{arcs.map((arc, i) => (
-					<path
-						key={i}
-						d={arcGen(arc)}
-						fill={colors(arc.data[0])}
-						stroke='white'
-						strokeWidth={2}></path>
-				))}
+		<div className='flex gap-6'>
+			{/* Pie Chart */}
+			<div className='relative'>
+				<svg width={300} height={300}>
+					<g transform='translate(150,150)'>
+						{arcs.map((arc, i) => (
+							<path
+								key={i}
+								d={arcGen(arc)}
+								fill={colors(arc.data[0])}
+								stroke='white'
+								strokeWidth={2}
+								onMouseEnter={(e) =>
+									setHovered({
+										sector: arc.data[0],
+										value: arc.data[1],
+										x: e.clientX,
+										y: e.clientY,
+									})
+								}
+								onMouseMove={(e) =>
+									setHovered((h) =>
+										h
+											? {
+													...h,
+													x: e.clientX,
+													y: e.clientY,
+											  }
+											: null
+									)
+								}
+								onMouseLeave={() => setHovered(null)}
+							/>
+						))}
+					</g>
+				</svg>
 
-				{arcs.map((arc, i) => (
-					<text
-						key={i}
-						transform={`translate(${arcGen.centroid(arc)})`}
-						textAnchor='middle'
-						fontSize='14'
-						fill='#000'>
-						${arc.data[1].toLocaleString()}
-					</text>
+				{/* Tooltip */}
+				{hovered && (
+					<div
+						className='fixed z-50 pointer-events-none bg-black/80 text-white text-sm px-3 py-1 rounded'
+						style={{
+							left: hovered.x + 10,
+							top: hovered.y + 10,
+						}}>
+						<div className='font-semibold'>{hovered.sector}</div>
+						<div>${hovered.value.toLocaleString()}</div>
+					</div>
+				)}
+			</div>
+
+			{/* Legend */}
+			<div className='flex flex-col justify-center gap-2'>
+				{sectorCounts.map(([sector, value], i) => (
+					<div key={i} className='flex items-center gap-2 text-text'>
+						<div
+							style={{ backgroundColor: colors(sector) }}
+							className='w-4 h-4 rounded'
+						/>
+						<div className='text-sm'>
+							{sector} (${value.toLocaleString()})
+						</div>
+					</div>
 				))}
-			</g>
-		</svg>
+			</div>
+		</div>
 	);
 }

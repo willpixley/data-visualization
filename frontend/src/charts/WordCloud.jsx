@@ -1,10 +1,27 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import cloud from 'd3-cloud';
+import { formatDate } from '../utils/lib';
 
-export default function StockWordCloud({ data, width = 800, height = 400 }) {
+export default function StockWordCloud({
+	setBlurred,
+	data,
+	width = 800,
+	height = 400,
+}) {
 	const svgRef = useRef();
+	const [selectedTicker, setSelectedTicker] = useState(null);
+	const [hovered, setHovered] = useState(null); // <-- NEW
 
+	const tradesForTicker = selectedTicker
+		? data.filter((d) => d.stock_ticker === selectedTicker)
+		: [];
+
+	useEffect(() => {
+		if (selectedTicker) {
+			setBlurred(true);
+		}
+	}, [selectedTicker]);
 	useEffect(() => {
 		if (!data || data.length === 0) return;
 
@@ -16,11 +33,10 @@ export default function StockWordCloud({ data, width = 800, height = 400 }) {
 
 		const words = Array.from(totals, ([text, value]) => ({ text, value }));
 
-		// Scale font size
 		const fontScale = d3
 			.scaleSqrt()
 			.domain([0, d3.max(words, (d) => d.value)])
-			.range([10, 60]); // min/max font size
+			.range([10, 60]);
 
 		const layout = cloud()
 			.size([width, height])
@@ -54,14 +70,93 @@ export default function StockWordCloud({ data, width = 800, height = 400 }) {
 				.style('font-size', (d) => `${d.size}px`)
 				.style('font-family', 'Impact')
 				.style('fill', (_, i) => d3.schemeCategory10[i % 10])
+				.style('cursor', 'pointer')
 				.attr('text-anchor', 'middle')
 				.attr(
 					'transform',
 					(d) => `translate(${d.x},${d.y}) rotate(${d.rotate})`
 				)
-				.text((d) => d.text);
+				.text((d) => d.text)
+				.on('mouseenter', (event, d) => {
+					setHovered({
+						ticker: d.text,
+						value: d.value,
+						x: event.clientX,
+						y: event.clientY,
+					});
+				})
+				.on('mousemove', (event, d) => {
+					setHovered((h) =>
+						h ? { ...h, x: event.clientX, y: event.clientY } : null
+					);
+				})
+				.on('mouseleave', () => setHovered(null))
+				.on('click', (event, d) => {
+					setSelectedTicker(d.text);
+				});
 		}
 	}, [data, width, height]);
 
-	return <svg ref={svgRef}></svg>;
+	return (
+		<>
+			<svg ref={svgRef} />
+
+			{hovered && (
+				<div
+					className='fixed z-50 pointer-events-none bg-black/80 text-white text-sm px-3 py-1 rounded'
+					style={{
+						left: hovered.x + 12,
+						top: hovered.y + 12,
+					}}>
+					<div className='font-semibold'>{hovered.ticker}</div>
+					<div>Volume: ${Number(hovered.value).toLocaleString()}</div>
+				</div>
+			)}
+
+			{selectedTicker && (
+				<div
+					className='fixed inset-0 z-50 bg-black/50 flex items-center justify-center'
+					onClick={() => setSelectedTicker(null)}>
+					<div
+						className='bg-tile rounded-lg shadow-xl p-6 w-[400px] max-h-[70vh] overflow-y-auto'
+						onClick={(e) => e.stopPropagation()}>
+						<h2 className='text-xl text-text font-semibold mb-3'>
+							Trades for {tradesForTicker[0].stock_name} (
+							{selectedTicker})
+						</h2>
+
+						{tradesForTicker.map((t, i) => (
+							<div
+								key={i}
+								className='border-b py-2 text-sm text-text'>
+								<div>
+									<b>Date:</b> {formatDate(t.trade_date)}
+								</div>
+								<div>
+									<b>Action:</b>{' '}
+									{t.action === 'b' ? 'Buy' : 'Sell'}
+								</div>
+								<div>
+									<b>Amount:</b> $
+									{Number(t.amount).toLocaleString()}
+								</div>
+								<div>
+									<b>Representative: </b> {t.member_name}
+								</div>
+							</div>
+						))}
+
+						<button
+							className='mt-4 px-4 py-2 bg-red-800 text-white rounded cursor-pointer'
+							onClick={() => {
+								setSelectedTicker(null);
+								setBlurred(false);
+							}}>
+							Close
+						</button>
+					</div>
+				</div>
+			)}
+		</>
+	);
 }

@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import * as d3 from 'd3';
 
 export default function BuySellLineChart({ data }) {
+	const [tooltip, setTooltip] = useState(null);
+
 	const { dates, buyCounts, sellCounts } = useMemo(() => {
 		const parsed = data.map((d) => ({
 			date: new Date(d.trade_date),
 			action: d.action,
 		}));
 
-		// Rollups by day
 		const buys = d3.rollup(
 			parsed.filter((d) => d.action === 'b'),
 			(v) => v.length,
@@ -21,7 +22,6 @@ export default function BuySellLineChart({ data }) {
 			(d) => d3.timeDay(d.date)
 		);
 
-		// Merge all dates
 		const allDates = Array.from(
 			new Set([...buys.keys(), ...sells.keys()])
 		).sort((a, b) => a - b);
@@ -48,61 +48,122 @@ export default function BuySellLineChart({ data }) {
 		.nice()
 		.range([height - margin.bottom, margin.top]);
 
-	const lineBuy = d3
-		.line()
-		.x((_, i) => x(dates[i]))
-		.y((d) => y(buyCounts[buyCounts.indexOf(d)]))
-		.curve(d3.curveMonotoneX);
-
-	const lineSell = d3
-		.line()
-		.x((_, i) => x(dates[i]))
-		.y((d) => y(sellCounts[sellCounts.indexOf(d)]))
-		.curve(d3.curveMonotoneX);
-
 	return (
 		<svg width={width} height={height}>
-			{/* x axis */}
 			<g
 				transform={`translate(0,${height - margin.bottom})`}
 				ref={(node) => {
-					if (node) d3.select(node).call(d3.axisBottom(x).ticks(7));
+					if (node) {
+						const axis = d3
+							.select(node)
+							.call(d3.axisBottom(x).ticks(7));
+
+						axis.selectAll('text').attr('fill', '#fff');
+						axis.selectAll('line').attr('stroke', '#fff');
+						axis.selectAll('path').attr('stroke', '#fff');
+					}
 				}}
 			/>
 
-			{/* y axis */}
 			<g
 				transform={`translate(${margin.left},0)`}
 				ref={(node) => {
-					if (node) d3.select(node).call(d3.axisLeft(y));
+					if (node) {
+						const axis = d3.select(node).call(d3.axisLeft(y));
+
+						axis.selectAll('text').attr('fill', '#fff');
+						axis.selectAll('line').attr('stroke', '#fff');
+						axis.selectAll('path').attr('stroke', '#fff');
+					}
 				}}
 			/>
-
-			{/* buy line */}
 			<path
 				fill='none'
-				stroke='#22c55e' /* greenish */
+				stroke='#22c55e'
 				strokeWidth='2.5'
 				d={d3
 					.line()
-					.x((d, i) => x(dates[i]))
-					.y((d) => y(buyCounts[d]))
-					.curve(d3.curveMonotoneX)(buyCounts.map((_, i) => i))}
+					.x((_, i) => x(dates[i]))
+					.y((_, i) => y(buyCounts[i]))
+					.curve(d3.curveMonotoneX)(buyCounts)}
 			/>
 
-			{/* sell line */}
 			<path
 				fill='none'
-				stroke='#ef4444' /* red-500 */
+				stroke='#ef4444'
 				strokeWidth='2.5'
 				d={d3
 					.line()
-					.x((d, i) => x(dates[i]))
-					.y((d) => y(sellCounts[d]))
-					.curve(d3.curveMonotoneX)(sellCounts.map((_, i) => i))}
+					.x((_, i) => x(dates[i]))
+					.y((_, i) => y(sellCounts[i]))
+					.curve(d3.curveMonotoneX)(sellCounts)}
 			/>
 
-			{/* labels */}
+			{buyCounts.map((count, i) => (
+				<g key={`b-${i}`}>
+					<circle
+						cx={x(dates[i])}
+						cy={y(count)}
+						r={10}
+						fill='transparent'
+						onMouseEnter={() =>
+							setTooltip({
+								x: x(dates[i]),
+								y: y(count),
+								date: dates[i],
+								value: count,
+								type: 'Buy',
+								color: '#22c55e',
+							})
+						}
+						onMouseLeave={() => setTooltip(null)}
+					/>
+				</g>
+			))}
+
+			{sellCounts.map((count, i) => (
+				<g key={`s-${i}`}>
+					<circle
+						cx={x(dates[i])}
+						cy={y(count)}
+						r={10}
+						fill='transparent'
+						onMouseEnter={() =>
+							setTooltip({
+								x: x(dates[i]),
+								y: y(count),
+								date: dates[i],
+								value: count,
+								type: 'Sell',
+								color: '#ef4444',
+							})
+						}
+						onMouseLeave={() => setTooltip(null)}
+					/>
+				</g>
+			))}
+
+			{tooltip && (
+				<g
+					transform={`translate(${tooltip.x + 10}, ${
+						tooltip.y - 10
+					})`}>
+					<rect
+						width='120'
+						height='55'
+						fill='#111827'
+						rx='6'
+						opacity='0.85'
+					/>
+					<text x='10' y='20' fill='white' fontSize='12'>
+						{tooltip.type}: {tooltip.value}
+					</text>
+					<text x='10' y='38' fill='#d1d5db' fontSize='11'>
+						{tooltip.date.toLocaleDateString()}
+					</text>
+				</g>
+			)}
+
 			<text x={width - 120} y={40} fill='#22c55e' fontSize='14'>
 				● Buys
 			</text>

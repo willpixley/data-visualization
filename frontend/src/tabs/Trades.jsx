@@ -3,7 +3,7 @@ import ActionPieChart from '../charts/ActionPieChart';
 import BuySellLineChart from '../charts/BuySellLineChart';
 import StockWordCloud from '../charts/WordCloud';
 
-export default function Trades({ data }) {
+export default function Trades({ setBlurred, data }) {
 	return (
 		<div className='flex flex-col gap-10'>
 			<div className='flex justify-evenly'>
@@ -30,13 +30,13 @@ export default function Trades({ data }) {
 					<h1 className='text-center text-white font-bold pt-5'>
 						Most traded stocks (by volume)
 					</h1>
-					<StockWordCloud data={data} />
+					<StockWordCloud setBlurred={setBlurred} data={data} />
 				</div>
 			</div>
 			<div className='flex justify-evenly'>
 				<div className='flex flex-col  items-center  rounded-3xl w-[33%] justify-center'>
-					<h1 className='text-center text-white font-bold pt-5'>
-						Stock Purhcases and Sales since Jan. 2023 (By volume)
+					<h1 className='text-center text-white font-bold pt-5 mb-3'>
+						Stock Trades by Sector since Jan. 2023 (By volume)
 					</h1>
 					<ActionPieChart data={data} />
 				</div>

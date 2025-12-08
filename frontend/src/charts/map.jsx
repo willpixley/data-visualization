@@ -98,9 +98,8 @@ const stateNames = {
 	WY: 'Wyoming',
 };
 
-export default function MapStory({ data }) {
+export default function MapStory({ setBlurred, data }) {
 	const chartRef = useRef(null);
-	const [activeStepIndex, setActiveStepIndex] = useState(0);
 	const statePathMap = useRef(new Map());
 	const allStates = useMemo(() => Object.values(stateNames), []);
 	const [selectedState, setSelectedState] = useState(null);
@@ -109,7 +108,6 @@ export default function MapStory({ data }) {
 	const [selectedMember, setSelectedMember] = useState(null);
 	const tooltipRef = useRef(null);
 
-	const currentStep = steps[activeStepIndex];
 	useEffect(() => {
 		async function loadMembersCSV() {
 			const rows = await d3.csv('/member_info.csv');
@@ -301,14 +299,12 @@ export default function MapStory({ data }) {
 		<>
 			{selectedMember && (
 				<Popout
+					setBlurred={setBlurred}
 					member={selectedMember}
 					setSelectedMember={setSelectedMember}
 				/>
 			)}
-			<div
-				className={`w-full ${
-					selectedMember && 'blur-xl pointer-events-none'
-				}`}>
+			<div className={`w-full `}>
 				<h1 className='text-center text-3xl text-text font-bold my-3'>
 					Trade Volume by State
 				</h1>
@@ -337,6 +333,7 @@ export default function MapStory({ data }) {
 											key={member.id}
 											onClick={() => {
 												setSelectedMember(member);
+												setBlurred(true);
 											}}>
 											<img
 												className='w-12 h-12 object-cover rounded-full'

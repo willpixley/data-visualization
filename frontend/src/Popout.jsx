@@ -1,12 +1,13 @@
 import { formatDate } from './utils/lib';
-export default function Popout({ member, setSelectedMember }) {
+export default function Popout({ member, setSelectedMember, setBlurred }) {
 	function handleClose() {
+		setBlurred(false);
 		setSelectedMember(null);
 	}
-	console.log(member);
+
 	return (
 		<div
-			className='bg-gray-400 absolute w-[60%]  h-[60vh] rounded-3xl z-10 flex flex-col p-3'
+			className='bg-gray-400 absolute w-[60%]  h-[60vh] rounded-3xl z-50 flex flex-col p-3'
 			style={{ backgroundColor: 'rgba(77,81,87,0.75)' }}>
 			<button
 				onClick={handleClose}

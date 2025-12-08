@@ -158,6 +158,6 @@ export default function PerformanceLineChart({
 	return (
 		<div
 			ref={chartRef}
-			className='h-64 w-full rounded-lg bg-background shadow sm:h-80 md:h-96'></div>
+			className='h-72 w-full rounded-3xl bg-background shadow sm:h-80 md:h-96'></div>
 	);
 }
