@@ -5,46 +5,6 @@ import { Legend } from '../utils/Legend.js';
 import './map.css';
 import Popout from '../Popout.jsx';
 
-const steps = [
-	{
-		title: 'United States overview',
-		text: 'This map shows unemployment rates across all U.S. states. Use Next to focus on specific regions.',
-		tagline: 'All states highlighted',
-		states: [],
-	},
-	{
-		title: 'West Coast',
-		text: 'West Coast states (California, Oregon, Washington) often show distinct unemployment patterns.',
-		tagline: 'Focus: CA, OR, WA',
-		states: ['06', '41', '53'],
-	},
-	{
-		title: 'Northeast',
-		text: 'Northeastern states tend to cluster together on many socioeconomic indicators, including unemployment.',
-		tagline: 'Focus: CT, ME, MA, NH, NJ, NY, PA, RI, VT',
-		states: ['09', '23', '25', '33', '34', '36', '42', '44', '50'],
-	},
-	{
-		title: 'South',
-		text: 'Southern states present another regional pattern, with some of the highest and lowest unemployment rates side by side.',
-		tagline: 'Focus: AL, AR, DE, FL, GA, KY, LA, MS, NC, SC, TN, TX',
-		states: [
-			'01',
-			'05',
-			'10',
-			'12',
-			'13',
-			'21',
-			'22',
-			'28',
-			'37',
-			'45',
-			'47',
-			'48',
-		],
-	},
-];
-
 const stateNames = {
 	AL: 'Alabama',
 	AK: 'Alaska',

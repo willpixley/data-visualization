@@ -160,7 +160,7 @@ export default function Performance({ data }) {
 								{selectedTrade.member_name} |{' '}
 								{selectedTrade.member_party[0]}
 							</p>
-							<p className='w-[60%] truncate'>
+							<p className='w-[60%] truncate text-right'>
 								{selectedTrade.committee_names}
 							</p>
 						</div>

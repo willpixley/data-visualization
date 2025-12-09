@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react';
 import * as d3 from 'd3';
 
-export default function ActionPieChart({ data }) {
+export default function ActionPieChart({
+	selectedSector,
+	setSelectedSector,
+	data,
+}) {
 	const [hovered, setHovered] = useState(null);
 
-	// ─── Top 6 sectors + Other ─────────────────────────
+	// top 6 sectors
 	const sectorCounts = useMemo(() => {
 		const totals = d3.rollups(
 			data,
@@ -38,35 +42,49 @@ export default function ActionPieChart({ data }) {
 			<div className='relative'>
 				<svg width={300} height={300}>
 					<g transform='translate(150,150)'>
-						{arcs.map((arc, i) => (
-							<path
-								key={i}
-								d={arcGen(arc)}
-								fill={colors(arc.data[0])}
-								stroke='white'
-								strokeWidth={2}
-								onMouseEnter={(e) =>
-									setHovered({
-										sector: arc.data[0],
-										value: arc.data[1],
-										x: e.clientX,
-										y: e.clientY,
-									})
-								}
-								onMouseMove={(e) =>
-									setHovered((h) =>
-										h
-											? {
-													...h,
-													x: e.clientX,
-													y: e.clientY,
-											  }
-											: null
-									)
-								}
-								onMouseLeave={() => setHovered(null)}
-							/>
-						))}
+						{arcs.map((arc, i) => {
+							const sector = arc.data[0];
+							const isSelected = selectedSector === sector;
+
+							return (
+								<path
+									key={i}
+									d={arcGen(arc)}
+									fill={colors(sector)}
+									stroke='white'
+									strokeWidth={isSelected ? 4 : 2}
+									opacity={
+										selectedSector && !isSelected ? 0.35 : 1
+									}
+									style={{ cursor: 'pointer' }}
+									onClick={() =>
+										setSelectedSector(
+											isSelected ? null : sector
+										)
+									}
+									onMouseEnter={(e) =>
+										setHovered({
+											sector,
+											value: arc.data[1],
+											x: e.clientX,
+											y: e.clientY,
+										})
+									}
+									onMouseMove={(e) =>
+										setHovered((h) =>
+											h
+												? {
+														...h,
+														x: e.clientX,
+														y: e.clientY,
+												  }
+												: null
+										)
+									}
+									onMouseLeave={() => setHovered(null)}
+								/>
+							);
+						})}
 					</g>
 				</svg>
 
@@ -87,7 +105,15 @@ export default function ActionPieChart({ data }) {
 			{/* Legend */}
 			<div className='flex flex-col justify-center gap-2'>
 				{sectorCounts.map(([sector, value], i) => (
-					<div key={i} className='flex items-center gap-2 text-text'>
+					<div
+						key={i}
+						className='flex items-center gap-2 text-text'
+						style={{
+							opacity:
+								selectedSector && selectedSector !== sector
+									? 0.4
+									: 1,
+						}}>
 						<div
 							style={{ backgroundColor: colors(sector) }}
 							className='w-4 h-4 rounded'

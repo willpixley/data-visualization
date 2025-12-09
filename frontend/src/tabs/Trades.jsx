@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import ActionPieChart from '../charts/ActionPieChart';
 import BuySellLineChart from '../charts/BuySellLineChart';
 import StockWordCloud from '../charts/WordCloud';
 
 export default function Trades({ setBlurred, data }) {
+	const [selectedSector, setSelectedSector] = useState(null);
+
 	return (
 		<div className='flex flex-col gap-10'>
 			<div className='flex justify-evenly'>
@@ -38,13 +40,20 @@ export default function Trades({ setBlurred, data }) {
 					<h1 className='text-center text-white font-bold pt-5 mb-3'>
 						Stock Trades by Sector since Jan. 2023 (By volume)
 					</h1>
-					<ActionPieChart data={data} />
+					<ActionPieChart
+						selectedSector={selectedSector}
+						setSelectedSector={setSelectedSector}
+						data={data}
+					/>
 				</div>
 				<div className='bg-tile rounded-3xl'>
 					<h1 className='text-center text-white font-bold pt-5'>
 						Stock Purhcases and Sales since Jan. 2023 (By date)
 					</h1>
-					<BuySellLineChart data={data} />
+					<BuySellLineChart
+						selectedSector={selectedSector}
+						data={data}
+					/>
 				</div>
 			</div>
 		</div>
